@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Todo" />
+  <meta name="theme-color" content="#007AFF" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.svg" />
+  <title>Todo</title>
+  <style>
+    :root {
+      --blue: #007AFF;
+      --red: #FF3B30;
+      --green: #34C759;
+      --gray: #8E8E93;
+      --bg: #F2F2F7;
+      --card: #FFFFFF;
+      --text: #000000;
+      --subtext: #8E8E93;
+      --separator: #C6C6C8;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #000000;
+        --card: #1C1C1E;
+        --text: #FFFFFF;
+        --subtext: #8E8E93;
+        --separator: #38383A;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      padding-top: calc(var(--safe-top) + 16px);
+      padding-bottom: calc(var(--safe-bottom) + 80px);
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+
+    header {
+      padding: 8px 4px 16px;
+    }
+
+    header h1 {
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: 0.37px;
+    }
+
+    .stats {
+      font-size: 14px;
+      color: var(--subtext);
+      margin-top: 2px;
+    }
+
+    /* Input area */
+    .input-wrap {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .input-wrap input {
+      flex: 1;
+      height: 48px;
+      padding: 0 16px;
+      border-radius: 12px;
+      border: none;
+      background: var(--card);
+      color: var(--text);
+      font-size: 17px;
+      font-family: inherit;
+      outline: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .input-wrap input::placeholder {
+      color: var(--subtext);
+    }
+
+    .btn-add {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: none;
+      background: var(--blue);
+      color: #fff;
+      font-size: 28px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,122,255,0.35);
+      transition: transform 0.1s, opacity 0.1s;
+      flex-shrink: 0;
+    }
+
+    .btn-add:active {
+      transform: scale(0.92);
+      opacity: 0.85;
+    }
+
+    /* Filter tabs */
+    .filter-tabs {
+      display: flex;
+      background: var(--card);
+      border-radius: 10px;
+      padding: 2px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .filter-tab {
+      flex: 1;
+      padding: 7px 4px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--subtext);
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-tab.active {
+      background: var(--blue);
+      color: #fff;
+      box-shadow: 0 1px 4px rgba(0,122,255,0.3);
+    }
+
+    /* Todo list */
+    .todo-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--separator);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .todo-item {
+      background: var(--card);
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      gap: 12px;
+      animation: slideIn 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .todo-item:first-child {
+      border-radius: 12px 12px 0 0;
+    }
+
+    .todo-item:last-child {
+      border-radius: 0 0 12px 12px;
+    }
+
+    .todo-item:only-child {
+      border-radius: 12px;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .todo-check {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid var(--separator);
+      flex-shrink: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .todo-check.done {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .todo-check.done::after {
+      content: '';
+      width: 10px;
+      height: 6px;
+      border-left: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: rotate(-45deg) translateY(-1px);
+    }
+
+    .todo-text {
+      flex: 1;
+      font-size: 17px;
+      line-height: 1.3;
+      word-break: break-word;
+      transition: color 0.2s;
+    }
+
+    .todo-text.done {
+      color: var(--subtext);
+      text-decoration: line-through;
+    }
+
+    .todo-delete {
+      width: 30px;
+      height: 30px;
+      border: none;
+      background: transparent;
+      color: var(--red);
+      font-size: 20px;
+      cursor: pointer;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .todo-item:hover .todo-delete,
+    .todo-item.show-delete .todo-delete {
+      opacity: 1;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--subtext);
+    }
+
+    .empty-state .icon {
+      font-size: 56px;
+      margin-bottom: 12px;
+    }
+
+    .empty-state p {
+      font-size: 17px;
+      font-weight: 500;
+    }
+
+    .empty-state span {
+      font-size: 14px;
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* Clear completed */
+    .clear-row {
+      text-align: right;
+      margin-top: 12px;
+    }
+
+    .btn-clear {
+      border: none;
+      background: transparent;
+      color: var(--subtext);
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+
+    .btn-clear:active {
+      opacity: 0.6;
+    }
+
+    /* Install banner */
+    #install-banner {
+      display: none;
+      position: fixed;
+      bottom: calc(var(--safe-bottom) + 16px);
+      left: 16px;
+      right: 16px;
+      background: var(--card);
+      border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+      flex-direction: column;
+      gap: 8px;
+      z-index: 100;
+    }
+
+    #install-banner.visible {
+      display: flex;
+    }
+
+    #install-banner p {
+      font-size: 14px;
+      color: var(--subtext);
+    }
+
+    #install-banner strong {
+      color: var(--text);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .banner-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-install {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      background: var(--blue);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .btn-dismiss {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      background: var(--bg);
+      color: var(--subtext);
+      font-size: 15px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    /* iOS hint for add-to-home */
+    #ios-hint {
+      display: none;
+      position: fixed;
+      bottom: calc(var(--safe-bottom) + 16px);
+      left: 16px;
+      right: 16px;
+      background: var(--card);
+      border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+      z-index: 100;
+    }
+
+    #ios-hint.visible {
+      display: block;
+    }
+
+    #ios-hint p {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    #ios-hint button {
+      margin-top: 10px;
+      border: none;
+      background: var(--bg);
+      color: var(--subtext);
+      font-size: 14px;
+      font-family: inherit;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      float: right;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>My Tasks</h1>
+    <div class="stats" id="stats">0 tasks</div>
+  </header>
+
+  <div class="input-wrap">
+    <input type="text" id="task-input" placeholder="New task…" maxlength="200" autocomplete="off" autocorrect="on" />
+    <button class="btn-add" id="btn-add" aria-label="Add task">+</button>
+  </div>
+
+  <div class="filter-tabs" role="tablist">
+    <button class="filter-tab active" data-filter="all" role="tab">All</button>
+    <button class="filter-tab" data-filter="active" role="tab">Active</button>
+    <button class="filter-tab" data-filter="completed" role="tab">Done</button>
+  </div>
+
+  <div id="list-container"></div>
+
+  <div class="clear-row" id="clear-row" style="display:none">
+    <button class="btn-clear" id="btn-clear">Clear completed</button>
+  </div>
+
+  <!-- Install prompt for Android/desktop -->
+  <div id="install-banner">
+    <div>
+      <strong>Add to Home Screen</strong>
+      <p>Install this app for quick access and offline use.</p>
+    </div>
+    <div class="banner-actions">
+      <button class="btn-install" id="btn-install">Install</button>
+      <button class="btn-dismiss" id="btn-dismiss">Not now</button>
+    </div>
+  </div>
+
+  <!-- iOS hint (Safari doesn't support beforeinstallprompt) -->
+  <div id="ios-hint">
+    <p>
+      To add this app to your iPhone home screen:<br />
+      Tap the <strong>Share</strong> button (&#8599;) in Safari, then choose <strong>"Add to Home Screen"</strong>.
+    </p>
+    <button id="ios-hint-close">Got it</button>
+    <div style="clear:both"></div>
+  </div>
+
+  <script>
+    // ── State ──────────────────────────────────────────────────────────────
+    let todos = JSON.parse(localStorage.getItem('todos') || '[]');
+    let filter = 'all';
+    let deferredPrompt = null;
+
+    // ── Helpers ────────────────────────────────────────────────────────────
+    function save() {
+      localStorage.setItem('todos', JSON.stringify(todos));
+    }
+
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2);
+    }
+
+    function filtered() {
+      if (filter === 'active')    return todos.filter(t => !t.done);
+      if (filter === 'completed') return todos.filter(t => t.done);
+      return todos;
+    }
+
+    // ── Render ─────────────────────────────────────────────────────────────
+    function render() {
+      const container = document.getElementById('list-container');
+      const items = filtered();
+      const total = todos.length;
+      const remaining = todos.filter(t => !t.done).length;
+      const done = total - remaining;
+
+      // Stats
+      const statEl = document.getElementById('stats');
+      if (total === 0) {
+        statEl.textContent = 'No tasks yet';
+      } else {
+        statEl.textContent = remaining === 0
+          ? `All ${total} tasks done!`
+          : `${remaining} of ${total} remaining`;
+      }
+
+      // Clear button
+      const clearRow = document.getElementById('clear-row');
+      clearRow.style.display = done > 0 ? 'block' : 'none';
+
+      // List
+      if (items.length === 0) {
+        const msgs = {
+          all:       ['clipboard', 'No tasks yet', 'Tap + to add your first task'],
+          active:    ['checkmark.circle', 'All done!', 'Nothing left to do'],
+          completed: ['star', 'No completed tasks', 'Complete a task to see it here'],
+        };
+        const [icon, title, sub] = msgs[filter];
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">${{clipboard:'📋', 'checkmark.circle':'✅', star:'⭐'}[icon]}</div>
+            <p>${title}</p>
+            <span>${sub}</span>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = '<div class="todo-list" id="todo-list"></div>';
+      const list = document.getElementById('todo-list');
+
+      items.forEach(todo => {
+        const item = document.createElement('div');
+        item.className = 'todo-item';
+        item.dataset.id = todo.id;
+        item.innerHTML = `
+          <div class="todo-check ${todo.done ? 'done' : ''}" data-id="${todo.id}" role="checkbox" aria-checked="${todo.done}" tabindex="0"></div>
+          <div class="todo-text ${todo.done ? 'done' : ''}">${escHtml(todo.text)}</div>
+          <button class="todo-delete" data-id="${todo.id}" aria-label="Delete task">✕</button>
+        `;
+
+        // Toggle on check
+        item.querySelector('.todo-check').addEventListener('click', () => toggle(todo.id));
+        item.querySelector('.todo-check').addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') toggle(todo.id);
+        });
+
+        // Delete
+        item.querySelector('.todo-delete').addEventListener('click', () => deleteTodo(todo.id));
+
+        // Long-press to show delete on mobile
+        let pressTimer;
+        item.addEventListener('touchstart', () => {
+          pressTimer = setTimeout(() => item.classList.add('show-delete'), 400);
+        }, { passive: true });
+        item.addEventListener('touchend', () => clearTimeout(pressTimer));
+        item.addEventListener('touchmove', () => clearTimeout(pressTimer), { passive: true });
+
+        list.appendChild(item);
+      });
+    }
+
+    function escHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // ── Actions ────────────────────────────────────────────────────────────
+    function addTodo(text) {
+      text = text.trim();
+      if (!text) return;
+      todos.unshift({ id: uid(), text, done: false, createdAt: Date.now() });
+      save();
+      render();
+    }
+
+    function toggle(id) {
+      const todo = todos.find(t => t.id === id);
+      if (todo) { todo.done = !todo.done; save(); render(); }
+    }
+
+    function deleteTodo(id) {
+      todos = todos.filter(t => t.id !== id);
+      save();
+      render();
+    }
+
+    function clearCompleted() {
+      todos = todos.filter(t => !t.done);
+      save();
+      render();
+    }
+
+    // ── Event Listeners ────────────────────────────────────────────────────
+    document.getElementById('btn-add').addEventListener('click', () => {
+      const input = document.getElementById('task-input');
+      addTodo(input.value);
+      input.value = '';
+      input.focus();
+    });
+
+    document.getElementById('task-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        addTodo(e.target.value);
+        e.target.value = '';
+      }
+    });
+
+    document.querySelectorAll('.filter-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        filter = btn.dataset.filter;
+        document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        render();
+      });
+    });
+
+    document.getElementById('btn-clear').addEventListener('click', clearCompleted);
+
+    // ── PWA install ────────────────────────────────────────────────────────
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                      || window.navigator.standalone === true;
+
+    if (isIOS && !isStandalone && !localStorage.getItem('ios-hint-dismissed')) {
+      setTimeout(() => document.getElementById('ios-hint').classList.add('visible'), 2000);
+    }
+
+    document.getElementById('ios-hint-close').addEventListener('click', () => {
+      document.getElementById('ios-hint').classList.remove('visible');
+      localStorage.setItem('ios-hint-dismissed', '1');
+    });
+
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (!localStorage.getItem('install-dismissed')) {
+        document.getElementById('install-banner').classList.add('visible');
+      }
+    });
+
+    document.getElementById('btn-install').addEventListener('click', async () => {
+      document.getElementById('install-banner').classList.remove('visible');
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+      }
+    });
+
+    document.getElementById('btn-dismiss').addEventListener('click', () => {
+      document.getElementById('install-banner').classList.remove('visible');
+      localStorage.setItem('install-dismissed', '1');
+    });
+
+    // ── Service Worker ─────────────────────────────────────────────────────
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+
+    // ── Init ───────────────────────────────────────────────────────────────
+    render();
+  </script>
+</body>
+</html>
