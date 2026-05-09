@@ -5,6 +5,8 @@ class TodoStore: ObservableObject {
 
     private let saveKey = "SavedTodos"
 
+    var completedCount: Int { items.filter { $0.isCompleted }.count }
+
     init() {
         if let data = UserDefaults.standard.data(forKey: saveKey),
            let decoded = try? JSONDecoder().decode([TodoItem].self, from: data) {
@@ -22,6 +24,14 @@ class TodoStore: ObservableObject {
     func toggle(_ item: TodoItem) {
         guard let index = items.firstIndex(where: { $0.id == item.id }) else { return }
         items[index].isCompleted.toggle()
+        items[index].completedAt = items[index].isCompleted ? Date() : nil
+        save()
+    }
+
+    func restore(_ item: TodoItem) {
+        guard let index = items.firstIndex(where: { $0.id == item.id }) else { return }
+        items[index].isCompleted = false
+        items[index].completedAt = nil
         save()
     }
 

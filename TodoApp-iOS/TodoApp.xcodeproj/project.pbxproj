@@ -12,6 +12,7 @@
 		E4A10000000000000000BB03 /* TodoItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A10000000000000000AA03 /* TodoItem.swift */; };
 		E4A10000000000000000BB04 /* TodoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A10000000000000000AA04 /* TodoStore.swift */; };
 		E4A10000000000000000BB05 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E4A10000000000000000AA05 /* Assets.xcassets */; };
+		E4A10000000000000000BB06 /* ArchiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A10000000000000000AA07 /* ArchiveView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +21,7 @@
 		E4A10000000000000000AA03 /* TodoItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoItem.swift; sourceTree = "<group>"; };
 		E4A10000000000000000AA04 /* TodoStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoStore.swift; sourceTree = "<group>"; };
 		E4A10000000000000000AA05 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E4A10000000000000000AA07 /* ArchiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveView.swift; sourceTree = "<group>"; };
 		E4A10000000000000000AA06 /* TodoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TodoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -55,6 +57,7 @@
 			children = (
 				E4A10000000000000000AA01 /* TodoApp.swift */,
 				E4A10000000000000000AA02 /* ContentView.swift */,
+				E4A10000000000000000AA07 /* ArchiveView.swift */,
 				E4A10000000000000000AA03 /* TodoItem.swift */,
 				E4A10000000000000000AA04 /* TodoStore.swift */,
 				E4A10000000000000000AA05 /* Assets.xcassets */,
@@ -133,6 +136,7 @@
 			files = (
 				E4A10000000000000000BB01 /* TodoApp.swift in Sources */,
 				E4A10000000000000000BB02 /* ContentView.swift in Sources */,
+				E4A10000000000000000BB06 /* ArchiveView.swift in Sources */,
 				E4A10000000000000000BB03 /* TodoItem.swift in Sources */,
 				E4A10000000000000000BB04 /* TodoStore.swift in Sources */,
 			);

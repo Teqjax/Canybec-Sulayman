@@ -5,4 +5,5 @@ struct TodoItem: Identifiable, Codable, Equatable {
     var title: String
     var isCompleted: Bool = false
     var createdAt = Date()
+    var completedAt: Date? = nil
 }

@@ -1,57 +1,29 @@
 import SwiftUI
 
-// MARK: - Filter
-
-enum Filter: String, CaseIterable {
-    case all    = "All"
-    case active = "Active"
-    case done   = "Done"
-}
-
 // MARK: - ContentView
 
 struct ContentView: View {
     @EnvironmentObject var store: TodoStore
-    @State private var filter: Filter = .all
     @State private var showingAddTask = false
 
-    var filteredItems: [TodoItem] {
-        switch filter {
-        case .all:    return store.items
-        case .active: return store.items.filter { !$0.isCompleted }
-        case .done:   return store.items.filter { $0.isCompleted }
-        }
-    }
-
-    var remainingCount: Int {
-        store.items.filter { !$0.isCompleted }.count
+    var activeItems: [TodoItem] {
+        store.items.filter { !$0.isCompleted }
     }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Filter picker
-                Picker("Filter", selection: $filter) {
-                    ForEach(Filter.allCases, id: \.self) { f in
-                        Text(f.rawValue).tag(f)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                .padding(.vertical, 12)
-
-                // List or empty state
-                if filteredItems.isEmpty {
-                    EmptyStateView(filter: filter)
+                if activeItems.isEmpty {
+                    ActiveEmptyStateView()
                 } else {
                     List {
-                        ForEach(filteredItems) { item in
+                        ForEach(activeItems) { item in
                             TodoRow(item: item) {
                                 withAnimation { store.toggle(item) }
                             }
                         }
                         .onDelete { offsets in
-                            let ids = Set(offsets.map { filteredItems[$0].id })
+                            let ids = Set(offsets.map { activeItems[$0].id })
                             withAnimation { store.delete(ids: ids) }
                         }
                     }
@@ -59,8 +31,7 @@ struct ContentView: View {
                     .animation(.default, value: store.items)
                 }
 
-                // Bottom bar with remaining count and add button
-                BottomBar(remainingCount: remainingCount) {
+                BottomBar(count: activeItems.count) {
                     showingAddTask = true
                 }
             }
@@ -68,11 +39,21 @@ struct ContentView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    if store.items.contains(where: { $0.isCompleted }) {
-                        Button("Clear Done", role: .destructive) {
-                            withAnimation { store.clearCompleted() }
+                    NavigationLink {
+                        ArchiveView()
+                            .environmentObject(store)
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "archivebox")
+                            if store.completedCount > 0 {
+                                Text("\(store.completedCount)")
+                                    .font(.caption.bold())
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Color.blue.opacity(0.15))
+                                    .clipShape(Capsule())
+                            }
                         }
-                        .font(.subheadline)
                     }
                 }
             }
@@ -117,62 +98,35 @@ struct TodoRow: View {
 
 // MARK: - EmptyStateView
 
-struct EmptyStateView: View {
-    let filter: Filter
-
+struct ActiveEmptyStateView: View {
     var body: some View {
         VStack(spacing: 16) {
             Spacer()
-            Image(systemName: iconName)
+            Image(systemName: "checklist")
                 .font(.system(size: 64))
                 .foregroundStyle(.secondary)
-            Text(title)
+            Text("No Active Tasks")
                 .font(.title3.bold())
                 .foregroundStyle(.secondary)
-            Text(subtitle)
+            Text("Tap + to add a task")
                 .font(.subheadline)
                 .foregroundStyle(.tertiary)
-                .multilineTextAlignment(.center)
             Spacer()
         }
         .padding()
         .frame(maxWidth: .infinity)
-    }
-
-    private var iconName: String {
-        switch filter {
-        case .all:    return "checklist"
-        case .active: return "checkmark.circle.fill"
-        case .done:   return "star.circle.fill"
-        }
-    }
-
-    private var title: String {
-        switch filter {
-        case .all:    return "No Tasks Yet"
-        case .active: return "All Done!"
-        case .done:   return "Nothing Completed"
-        }
-    }
-
-    private var subtitle: String {
-        switch filter {
-        case .all:    return "Tap + to add your first task"
-        case .active: return "You have no active tasks"
-        case .done:   return "Complete a task to see it here"
-        }
     }
 }
 
 // MARK: - BottomBar
 
 struct BottomBar: View {
-    let remainingCount: Int
+    let count: Int
     let onAdd: () -> Void
 
     var body: some View {
         HStack {
-            Text(remainingCount == 0 ? "All done!" : "\(remainingCount) remaining")
+            Text(count == 0 ? "All done!" : "\(count) remaining")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
